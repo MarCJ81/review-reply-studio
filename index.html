@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>사장님 리뷰 답글 스튜디오 — 업종·플랫폼별 리뷰 답글 1분 생성</title>
 <meta name="description" content="동네 가게 사장님을 위한 리뷰 답글 생성기. 업종 6종·플랫폼 4종·말투 3종으로 사장님 말투의 답글 3개를 만들고, 의료법·표시광고 위험 표현과 AI 티를 점검합니다. 서버 없이 브라우저에서만 동작합니다." />
-<meta name="theme-color" content="#f3eadd" />
+<meta name="theme-color" content="#FAFAFA" />
 <meta name="color-scheme" content="light dark" />
 <link rel="canonical" href="https://marcj81.github.io/review-reply-studio/" />
 <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -64,12 +64,31 @@
         <p class="kicker">동네 가게 사장님을 위한 답글 도구 · 2026</p>
         <h1>리뷰 답글, <em>사장님 말투로</em> 1분.</h1>
         <p class="hero-lead">업종과 플랫폼을 고르고 리뷰를 붙여넣으면, 그 가게 이야기가 들어간 답글 3개를 만듭니다. 손님이 쓴 단어를 그대로 짚어 주고, 위험한 표현은 미리 걸러 냅니다.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary btn-hero" href="#write-form">리뷰 붙여넣고 시작 →</a>
+          <a class="btn btn-ghost" href="#view-bulk" data-tab-link="bulk">리뷰 여러 개 한 번에</a>
+        </div>
+        <ul class="trust" aria-label="이 앱의 약속">
+          <li>서버 전송 0건</li>
+          <li>회원가입·결제 없음</li>
+          <li>입력값은 이 브라우저에만</li>
+        </ul>
       </div>
-      <ul class="hero-facts" aria-label="이 앱의 기준">
-        <li><strong>업종 6 × 플랫폼 4</strong><span>음식점부터 병원·학원까지</span></li>
-        <li><strong>말투 3종</strong><span>같은 리뷰, 다른 목소리</span></li>
-        <li><strong>서버 전송 0건</strong><span>이 브라우저에서만</span></li>
-      </ul>
+
+      <div class="hero-bento">
+        <ul class="hero-facts" aria-label="이 앱의 기준">
+          <li><strong>6 × 4</strong><span>업종 × 플랫폼</span><small>음식점부터 병원·학원까지</small></li>
+          <li><strong>3 종</strong><span>말투</span><small>같은 리뷰, 다른 목소리</small></li>
+          <li><strong>0 건</strong><span>서버 전송</span><small>이 브라우저에서만 처리</small></li>
+        </ul>
+        <aside class="tile-ink" aria-label="무료로 쓰는 조건">
+          <span class="tile-ink-tag">무료 모드</span>
+          <p class="tile-ink-num">0<small>원</small></p>
+          <p class="tile-ink-note">설치도, 계정도, 카드도 없이<br />오늘 바로 답글을 답니다.</p>
+          <p class="tile-ink-foot"><span>회원가입 0</span><span>결제 0</span><span>서버 0</span></p>
+          <span class="tile-ink-glow" aria-hidden="true"></span>
+        </aside>
+      </div>
     </div>
 
     <div class="studio">
@@ -473,7 +492,6 @@
 <script src="engines/pro-api-connector.js"></script>
 <script src="engines/pro-studio.js"></script>
 <script src="engines/copy-psych-engine.js"></script>
-<script src="engines/design-ref-engine.js"></script>
 <script src="core.js"></script>
 <script src="app.js"></script>
 </body>

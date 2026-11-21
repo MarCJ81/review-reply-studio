@@ -6,7 +6,6 @@
   'use strict';
 
   const C = window.ReviewCore;
-  const D = window.DesignRef;
   const P = window.ProConnector || null; // engines/pro-api-connector.js
   const PS = window.ProStudio ? window.ProStudio.create(P) : null; // engines/pro-studio.js
   const KEY = 'review-reply-studio:v1';
@@ -130,35 +129,13 @@
 
   function gradeClass(grade) { return 'grade g-' + grade.id; }
 
-  /* ── 디자인 토큰 (design-ref-engine v2) ───────────────── */
+  /* ── 디자인 시스템 A안 · Crisp Bento SaaS ───────────────
+     색·간격·라운딩의 단일 출처는 styles.css의 :root 다.
+     여기서는 문서에 어느 시스템인지 표기만 남긴다.            */
   function applyDesignTokens() {
-    if (!D || typeof D.tokens !== 'function') return;
     try {
-      const t = D.tokens('cream-editorial');
-      const css = [
-        ':root{',
-        '--paper:' + t.color.bg + ';',
-        '--surface:' + t.color.surface + ';',
-        '--ink:' + t.color.ink + ';',
-        '--sub:' + t.color.sub + ';',
-        '--line:' + t.color.line + ';',
-        '--accent:' + t.color.accent + ';',
-        '--accent-ink:' + t.color.accentInk + ';',
-        '--accent-soft:' + t.color.accentSoft + ';',
-        '--radius:' + Math.max(2, Math.min(4, t.space.unit / 2)) + 'px;',
-        '}',
-      ].join('');
-      const style = document.createElement('style');
-      style.id = 'design-tokens';
-      style.textContent = css;
-      document.head.appendChild(style);
-      const mix = D.fontMix ? D.fontMix('plex-editorial') : null;
-      if (mix && mix.title) {
-        document.documentElement.style.setProperty('--tracking-title', mix.title.tracking || '-0.03em');
-        document.documentElement.style.setProperty('--lh-body', String(mix.body.lineHeight || 1.7));
-      }
-      document.documentElement.setAttribute('data-design', 'designref.v2/cream-editorial');
-    } catch (e) { /* 토큰을 못 읽어도 기본 CSS로 동작한다 */ }
+      document.documentElement.setAttribute('data-design', 'crisp-bento/v1');
+    } catch (e) { /* 표기 실패는 화면 동작에 영향이 없다 */ }
   }
 
   /* ── 선택 목록 채우기 ─────────────────────────────────── */

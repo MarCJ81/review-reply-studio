@@ -145,7 +145,7 @@
 ```
 review-reply-studio/
 ├── index.html          화면 5개 (탭)
-├── styles.css          에디토리얼 라이트/다크, 로컬 폰트
+├── styles.css          A안 Crisp Bento 토큰·라이트/다크, 로컬 폰트
 ├── app.js              화면 조립·이벤트·저장·복사·다운로드
 ├── core.js             순수 로직: 분석·생성·점검·일괄·소명서·프롬프트
 ├── data.js             업종·플랫폼·상황·말투 문장 자산, 금지 표현 사전
@@ -153,7 +153,7 @@ review-reply-studio/
 ├── uitest.py           헤드리스 Chrome 검증 (데스크톱·모바일)
 ├── engines/
 │   ├── copy-psych-engine.js    번역체·군더더기 감지 (공용)
-│   └── design-ref-engine.js    v2 토큰 (UI 색·타이포)
+│   └── design-ref-engine.js    프리셋 토큰 카탈로그 (참고용, 미로드)
 ├── assets/fonts/       IBM Plex Sans KR woff2 3종 (로컬)
 ├── favicon.svg  privacy.html  robots.txt  sitemap.xml  .nojekyll
 └── preview-desktop.png  preview-mobile.png  preview-bulk.png  preview-claim.png
@@ -163,7 +163,7 @@ review-reply-studio/
 
 ```bash
 # 단위 테스트 (DOM 없이)
-/workspace/scratch/node-v22.11.0-linux-x64/bin/node test.js
+/workspace/scratch/node/node-v20.18.0-linux-x64/bin/node test.js
 
 # 실제 브라우저 검증 (1440×900 · 390×844)
 python3 uitest.py
@@ -174,7 +174,7 @@ python3 uitest.py
 일괄 나누기·소명서·프롬프트·파일 위생(개인정보·API 키 패턴 0건)까지 봅니다.
 
 `uitest.py`는 앱 폴더를 HTTP로 띄우고 헤드리스 Chrome으로 다음을 확인합니다.
-(2026-11-21 기준 `test.js` 단언 294개·`uitest.py` 검사 164개 전수 통과.)
+(2026-11-22 A안 리디자인 기준 `test.js` 단언 336개·`uitest.py` 검사 199개 전수 통과.)
 
 - 부팅 시 **외부 요청 0건**, 콘솔 에러 0, 4xx 응답 0
 - 데스크톱·모바일 **가로 넘침 0**
@@ -197,15 +197,26 @@ python3 uitest.py
 
 ---
 
-## 7. 디자인
+## 7. 디자인 — A안 Crisp Bento SaaS
 
-- `design-ref-engine.js` v2의 `cream-editorial` 프리셋 토큰(색 8종·간격·라운딩)을 부팅 시 CSS 변수로 적용합니다.
-  (`document.documentElement.dataset.design = "designref.v2/cream-editorial"`)
-- 라이트: 종이색 `#f3eadd` · 잉크 `#33281e` · 포인트 `#a8431f` (대비 5.18:1)
-- 다크: `#17130f` · `#f4ebdd` · `#f09a62`
-- 제목은 IBM Plex Sans KR SemiBold, 본문은 Regular. 1px 괘선·섹션 번호·작은 대문자 라벨로 에디토리얼 톤.
-- 종이 질감은 인라인 SVG `feTurbulence` 오버레이(외부 요청 0).
-- 모션 최소화 설정(`prefers-reduced-motion`)을 따릅니다.
+2026 Pinterest UI 리서치(`reports/pinterest-ui-trend-research-2026.md`)의 A안을 전면 적용했습니다.
+토큰의 단일 출처는 `styles.css`의 `:root`이고, 문서에는 `document.documentElement.dataset.design = "crisp-bento/v1"`만 표기합니다.
+
+| 토큰 | 값 |
+| --- | --- |
+| 바탕 / 카드 / 카드2 | `#FAFAFA` / `#FFFFFF` / `#F5F6F7` |
+| 잉크 / 보조 / 라인 | `#0C0D0F` / `#5B6067`(6.1:1) / `#E7E8EA` |
+| 액센트(단일) | 코발트 `#2F5BFF` (5.2:1 on `#FFFFFF`) |
+| 라운드 | 카드 16 · 입력/버튼 12 · 필 999 · 배지 6 |
+| 타이포 | 헤드라인 800 `clamp(32px,4vw,54px)` 자간 `-0.045em`, 본문 16px |
+| 상태색 | 성공 `#0B7A55` · 주의 `#8A5A0B` · 위험 `#B3261E` (의미 전달 전용) |
+
+- 히어로 아래 **지표 타일 3개 + 먹색 타일 1개**(무료 모드 0원)를 벤토로 배치했습니다.
+- 다크 테마는 A안의 명암 반전판: `#0B0C0E` 바탕 · `#131519` 카드 · `#8AA4FF` 링크(8.2:1).
+  본문 대비 16.5:1, 푸터 링크 7.7:1 — `uitest.py`가 실측합니다.
+- 외부 요청 0: 폰트는 로컬 woff2, 아이콘은 인라인 SVG, 장식은 CSS 그라디언트만. 종이 질감 오버레이는 제거했습니다.
+- `prefers-reduced-motion` · `prefers-reduced-transparency` · `prefers-contrast`를 따릅니다.
+- `design-ref-engine.js`는 토큰 카탈로그(참고용)로 파일만 남기고, 부팅 시 로드하지 않습니다.
 
 ---
 
