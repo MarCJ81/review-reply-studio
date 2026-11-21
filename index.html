@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ko" data-theme="light">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>사장님 리뷰 답글 스튜디오 — 업종·플랫폼별 리뷰 답글 1분 생성</title>
+<meta name="description" content="동네 가게 사장님을 위한 리뷰 답글 생성기. 업종 6종·플랫폼 4종·말투 3종으로 사장님 말투의 답글 3개를 만들고, 의료법·표시광고 위험 표현과 AI 티를 점검합니다. 서버 없이 브라우저에서만 동작합니다." />
+<meta name="theme-color" content="#f3eadd" />
+<meta name="color-scheme" content="light dark" />
+<link rel="canonical" href="https://marcj81.github.io/review-reply-studio/" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="styles.css" />
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"사장님 리뷰 답글 스튜디오","applicationCategory":"BusinessApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"KRW"},"description":"업종 6종·플랫폼 4종·말투 3종 리뷰 답글 생성, 일괄 답글, 허위 리뷰 신고 소명서, AI 브리지. 서버 전송 없이 브라우저에서 동작합니다.","inLanguage":"ko"}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#main">본문으로 바로가기</a>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#write" data-tab-link="write" aria-label="사장님 리뷰 답글 스튜디오 홈">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" width="34" height="34">
+          <rect x="1" y="1" width="38" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="1.4" />
+          <path d="M8 12h24M8 19.5h15M8 27h24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          <path d="M26.5 16.2l4.8 3.4-4.8 3.4z" fill="currentColor" />
+        </svg>
+      </span>
+      <span class="brand-text">
+        <strong>사장님 리뷰 답글 스튜디오</strong>
+        <small>REVIEW REPLY STUDIO</small>
+      </span>
+    </a>
+
+    <nav class="tabs" role="tablist" aria-label="주요 화면">
+      <button class="tab is-active" role="tab" aria-selected="true" aria-controls="view-write" id="tab-write" data-tab="write">답글 작성</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="view-bulk" id="tab-bulk" data-tab="bulk">일괄 답글</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="view-claim" id="tab-claim" data-tab="claim">신고 소명서</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="view-bridge" id="tab-bridge" data-tab="bridge">AI 브리지</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="view-store" id="tab-store" data-tab="store">매장 설정</button>
+    </nav>
+
+    <div class="top-actions">
+      <span class="pro-badge-slot" id="proBadge"></span>
+      <span class="save-state" id="save-state" aria-live="polite">자동 저장됨</span>
+      <button type="button" class="icon-btn" id="btn-theme" aria-label="다크 모드로 전환" title="라이트/다크">
+        <svg class="ico-sun" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><circle cx="10" cy="10" r="3.8" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 1.8v2M10 16.2v2M1.8 10h2M16.2 10h2M4.3 4.3l1.4 1.4M14.3 14.3l1.4 1.4M15.7 4.3l-1.4 1.4M5.7 14.3l-1.4 1.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <svg class="ico-moon" viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M16.4 12.3A6.8 6.8 0 0 1 7.7 3.6a6.8 6.8 0 1 0 8.7 8.7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" id="top-primary" data-action="copy-first">
+        <span id="top-primary-label">답글 만들기</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+  <!-- ═══ 답글 작성 ═══ -->
+  <section class="view is-active" id="view-write" role="tabpanel" aria-labelledby="tab-write">
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="kicker">동네 가게 사장님을 위한 답글 도구 · 2026</p>
+        <h1>리뷰 답글, <em>사장님 말투로</em> 1분.</h1>
+        <p class="hero-lead">업종과 플랫폼을 고르고 리뷰를 붙여넣으면, 그 가게 이야기가 들어간 답글 3개를 만듭니다. 손님이 쓴 단어를 그대로 짚어 주고, 위험한 표현은 미리 걸러 냅니다.</p>
+      </div>
+      <ul class="hero-facts" aria-label="이 앱의 기준">
+        <li><strong>업종 6 × 플랫폼 4</strong><span>음식점부터 병원·학원까지</span></li>
+        <li><strong>말투 3종</strong><span>같은 리뷰, 다른 목소리</span></li>
+        <li><strong>서버 전송 0건</strong><span>이 브라우저에서만</span></li>
+      </ul>
+    </div>
+
+    <div class="studio">
+      <aside class="panel panel-input" aria-label="리뷰와 조건">
+        <form id="write-form" novalidate>
+          <div class="step">
+            <div class="step-head"><span class="step-no">01</span><h2>리뷰 붙여넣기</h2>
+              <button type="button" class="link-btn" id="btn-sample">예시 리뷰</button>
+            </div>
+            <label class="sr-only" for="f-review">손님이 남긴 리뷰</label>
+            <textarea id="f-review" class="input area" rows="5" placeholder="예) 어제 점심에 들깨칼국수 먹었는데 진짜 고소하고 좋았어요. 사장님도 친절하시고 반찬도 계속 리필해주셔서 감사했습니다."></textarea>
+            <div class="input-foot">
+              <span class="counter" id="review-count">0자</span>
+              <div class="inline-fields">
+                <label for="f-rating" class="mini-label">별점</label>
+                <select id="f-rating" class="input select mini">
+                  <option value="0">자동</option>
+                  <option value="5">★5</option><option value="4">★4</option><option value="3">★3</option>
+                  <option value="2">★2</option><option value="1">★1</option>
+                </select>
+                <button type="button" class="link-btn muted" id="btn-clear-review">지우기</button>
+              </div>
+            </div>
+            <p class="detect" id="detect-badge" aria-live="polite">리뷰를 붙여넣으면 별점과 포인트를 읽습니다.</p>
+          </div>
+
+          <div class="step">
+            <div class="step-head"><span class="step-no">02</span><h2>어떤 리뷰인가요</h2></div>
+            <div class="chips" id="situation-chips" role="radiogroup" aria-label="리뷰 상황">
+              <button type="button" class="chip is-active" role="radio" aria-checked="true" data-sit="auto">자동 판별</button>
+              <button type="button" class="chip" role="radio" aria-checked="false" data-sit="praise">5점 칭찬</button>
+              <button type="button" class="chip" role="radio" aria-checked="false" data-sit="photo">사진·영수증</button>
+              <button type="button" class="chip" role="radio" aria-checked="false" data-sit="meh">3~4점 아쉬움</button>
+              <button type="button" class="chip" role="radio" aria-checked="false" data-sit="crisis">1~2점 컴플레인</button>
+              <button type="button" class="chip" role="radio" aria-checked="false" data-sit="regular">단골</button>
+              <button type="button" class="chip" role="radio" aria-checked="false" data-sit="notice">공지·예약</button>
+            </div>
+            <div class="notice-fields" id="notice-fields" hidden>
+              <div class="field-row">
+                <label class="field"><span>공지 종류</span>
+                  <select id="f-notice-type" class="input select">
+                    <option value="closed">휴무 안내</option>
+                    <option value="reserve">예약 안내</option>
+                    <option value="noshow">노쇼 안내</option>
+                  </select>
+                </label>
+                <label class="field"><span>일시·기간</span>
+                  <input id="f-period" class="input" type="text" placeholder="예: 이번 주말(11/22~23)" maxlength="40" />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-head"><span class="step-no">03</span><h2>말투</h2>
+              <button type="button" class="link-btn" id="f-compare-btn" aria-pressed="false">3말투 비교</button>
+            </div>
+            <div class="tone-cards" id="tone-cards">
+              <label class="tone-card is-active">
+                <input type="radio" name="tone" value="warm" checked />
+                <span class="tone-name">따뜻한 동네 사장님</span>
+                <span class="tone-desc">음식점·카페·미용실</span>
+                <span class="tone-sample">"이렇게 남겨주신 글, 오늘 몇 번을 다시 읽었어요."</span>
+              </label>
+              <label class="tone-card">
+                <input type="radio" name="tone" value="pro" />
+                <span class="tone-name">정중하고 깔끔한 전문샵</span>
+                <span class="tone-desc">병원·학원·숙박</span>
+                <span class="tone-sample">"남겨주신 내용 확인했습니다. 감사합니다."</span>
+              </label>
+              <label class="tone-card">
+                <input type="radio" name="tone" value="mz" />
+                <span class="tone-name">친근한 MZ 매장</span>
+                <span class="tone-desc">카페·네일·베이커리</span>
+                <span class="tone-sample">"이 리뷰는 저장해두고 싶네요."</span>
+              </label>
+            </div>
+            <label class="switch"><input type="checkbox" id="f-compare" /> <span>같은 리뷰를 말투 3종으로 비교</span></label>
+          </div>
+
+          <div class="step">
+            <div class="step-head"><span class="step-no">04</span><h2>가게</h2>
+              <button type="button" class="link-btn" data-tab-link="store">매장 정보 채우기 →</button>
+            </div>
+            <div class="field-row">
+              <label class="field"><span>업종</span>
+                <select id="f-industry" class="input select"></select>
+              </label>
+              <label class="field"><span>플랫폼</span>
+                <select id="f-platform" class="input select"></select>
+              </label>
+            </div>
+            <div class="store-meter" id="store-meter">
+              <div class="meter"><span id="store-meter-bar" style="width:0%"></span></div>
+              <p id="store-missing">매장 정보를 채우면 답글이 훨씬 구체적으로 바뀝니다.</p>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" id="btn-generate">답글 3개 만들기</button>
+          <p class="form-note">Enter 대신 버튼을 눌러 주세요. 생성한 답글은 아래에서 바로 고칠 수 있습니다.</p>
+        </form>
+      </aside>
+
+      <section class="panel panel-result" aria-label="답글 후보">
+        <div class="result-head">
+          <div>
+            <p class="kicker" id="reply-kicker">답글 후보</p>
+            <h2 id="reply-title">아직 만든 답글이 없습니다</h2>
+          </div>
+          <div class="result-actions">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-copy-all" disabled>전체 복사</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-again" disabled>다른 표현</button>
+          </div>
+        </div>
+        <p class="reply-meta" id="reply-meta">리뷰를 붙여넣고 <strong>답글 3개 만들기</strong>를 누르면, 상황을 읽고 후보를 만듭니다.</p>
+
+        <div class="pro-box" id="proBox">
+          <button type="button" class="btn pro-btn" id="btn-pro-replies" data-pro-action>
+            <span class="pro-spark" aria-hidden="true">✨</span><span class="pro-label">Pro AI로 맞춤 답글 3안 생성</span>
+          </button>
+          <button type="button" class="btn btn-ghost btn-sm" id="proConnect">Pro 연결 / 관리</button>
+          <p class="pro-state" id="proState" data-pro-state
+             data-pro-free="무료 모드 · 위의 답글 3개 만들기는 그대로 동작합니다. Pro를 연결하면 리뷰 문맥을 읽은 맞춤 답글 3안을 씁니다."
+             data-pro-pro="Pro 연결됨 · 리뷰 문맥·업종·법규 회피를 지킨 답글 3안을 쓰고 점검기를 다시 통과시킵니다.">무료 모드 · 위의 답글 3개 만들기는 그대로 동작합니다. Pro를 연결하면 리뷰 문맥을 읽은 맞춤 답글 3안을 씁니다.</p>
+        </div>
+        <p class="pro-note" id="proNote" hidden></p>
+
+        <div id="reply-list" class="reply-list" aria-live="polite"></div>
+
+        <div class="quality-panel" id="quality-panel" hidden>
+          <div class="quality-head">
+            <h3>답글 점검</h3>
+            <span class="quality-hint">AI 티 · 법 위험 · 개인정보 · 길이</span>
+          </div>
+          <ul class="quality-list" id="quality-list"></ul>
+          <p class="quality-empty" id="quality-empty" hidden>걸리는 표현이 없습니다. 이대로 올려도 좋습니다.</p>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ═══ 일괄 답글 ═══ -->
+  <section class="view" id="view-bulk" role="tabpanel" aria-labelledby="tab-bulk" hidden>
+    <div class="page-head">
+      <p class="kicker">BULK MODE</p>
+      <h1>리뷰 여러 개, 한 번에.</h1>
+      <p class="lead">리뷰를 붙여넣으면 별점과 상황을 읽어 나눕니다. 답글을 한 번에 만들고, 개별 복사하거나 CSV로 내려받으세요.</p>
+    </div>
+    <div class="bulk-bar">
+      <label class="field"><span>말투</span><select id="bulk-tone" class="input select"></select></label>
+      <label class="field"><span>업종</span><select id="bulk-industry" class="input select"></select></label>
+      <label class="field"><span>플랫폼</span><select id="bulk-platform" class="input select"></select></label>
+      <button type="button" class="btn btn-ghost btn-sm" id="btn-bulk-sample">예시 5개</button>
+    </div>
+    <div class="bulk-grid">
+      <section class="panel">
+        <div class="step-head"><span class="step-no">01</span><h2>리뷰 모아 붙여넣기</h2>
+          <span class="counter" id="bulk-chars">0자</span>
+        </div>
+        <label class="sr-only" for="bulk-input">리뷰 여러 개</label>
+        <textarea id="bulk-input" class="input area" rows="12" placeholder="리뷰를 한 줄에 하나씩, 또는 --- 로 구분해 붙여넣으세요.&#10;&#10;★★★★★ 친절하고 맛있어요&#10;---&#10;★★★ 대기는 좀 길었어요"></textarea>
+        <div class="bulk-actions">
+          <button type="button" class="btn btn-primary" id="btn-bulk-parse">리뷰 나누기</button>
+          <span class="bulk-count" id="bulk-count">0개</span>
+        </div>
+        <ul class="warn-list" id="bulk-warnings" hidden></ul>
+      </section>
+      <section class="panel" aria-label="나눈 리뷰">
+        <div class="step-head"><span class="step-no">02</span><h2>나눈 리뷰</h2>
+          <span class="bulk-count" id="bulk-ready">0개</span>
+        </div>
+        <div class="bulk-toolbar">
+          <button type="button" class="btn btn-primary btn-sm" id="btn-bulk-generate" disabled>전체 답글 만들기</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-bulk-copy" disabled>전체 복사</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-bulk-txt" disabled>TXT</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-bulk-csv" disabled>CSV</button>
+        </div>
+        <div id="bulk-list" class="bulk-list"></div>
+        <p class="empty-state" id="bulk-empty">아직 나눈 리뷰가 없습니다. 왼쪽에 리뷰를 붙여넣고 <strong>리뷰 나누기</strong>를 누르세요.</p>
+      </section>
+    </div>
+  </section>
+
+  <!-- ═══ 신고 소명서 ═══ -->
+  <section class="view" id="view-claim" role="tabpanel" aria-labelledby="tab-claim" hidden>
+    <div class="page-head">
+      <p class="kicker">REVIEW REPORT</p>
+      <h1>허위·악성 리뷰, 말이 아니라 <em>기록</em>으로.</h1>
+      <p class="lead">플랫폼 신고 창에 그대로 붙일 수 있는 사유서 초안을 만듭니다. 확인된 사실과 자료만 넣고, 법 조항은 참고용으로 표시합니다.</p>
+    </div>
+    <div class="claim-grid">
+      <section class="panel">
+        <div class="step-head"><span class="step-no">01</span><h2>대상 리뷰</h2>
+          <button type="button" class="link-btn" id="btn-claim-sample">가상 예시 채우기</button>
+        </div>
+        <div class="field-row">
+          <label class="field"><span>플랫폼</span><select id="c-platform" class="input select"></select></label>
+          <label class="field"><span>작성일</span><input id="c-date" class="input" type="date" /></label>
+        </div>
+        <label class="field"><span>작성자 표시명</span><input id="c-reviewer" class="input" type="text" placeholder="예: 가상손님 (신고서에는 가려서 표시됩니다)" maxlength="30" /></label>
+        <label class="field"><span>리뷰 주소 (선택)</span><input id="c-url" class="input" type="url" placeholder="https://" maxlength="200" /></label>
+        <label class="field"><span>리뷰 원문</span><textarea id="c-review" class="input area" rows="4" placeholder="문제가 된 리뷰를 그대로 붙여넣으세요."></textarea></label>
+
+        <div class="step-head mt"><span class="step-no">02</span><h2>위반 유형</h2></div>
+        <div class="checks" id="c-violations"></div>
+
+        <div class="step-head mt"><span class="step-no">03</span><h2>사실관계</h2></div>
+        <label class="field"><span>확인된 사실만 적어 주세요</span>
+          <textarea id="c-facts" class="input area" rows="5" placeholder="예) 11/18 12:30 주문 내역 확인. 해당 시간대 동일 메뉴 주문 1건, 조리 전 과정 CCTV 확인. 이물질 항의 접수 기록 없음."></textarea>
+        </label>
+        <div class="step-head mt"><span class="step-no">04</span><h2>확인 자료</h2></div>
+        <div class="checks" id="c-evidences"></div>
+
+        <div class="field-row mt">
+          <label class="field"><span>상호</span><input id="c-store" class="input" type="text" maxlength="40" /></label>
+          <label class="field"><span>대표자</span><input id="c-owner" class="input" type="text" maxlength="30" placeholder="예: 김사장" /></label>
+        </div>
+        <label class="field"><span>연락처</span><input id="c-contact" class="input" type="text" maxlength="30" placeholder="010-0000-0000" /></label>
+
+        <button type="button" class="btn btn-primary btn-lg" id="btn-claim-generate">사유서 만들기</button>
+        <p class="form-note">법률 자문이 아닙니다. 플랫폼 정책과 담당자 판단에 따라 결과가 달라집니다.</p>
+      </section>
+
+      <section class="panel claim-out-panel" aria-label="사유서 초안">
+        <div class="step-head"><span class="step-no">05</span><h2>사유서 초안</h2>
+          <div class="result-actions">
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-claim-copy" disabled>전체 복사</button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-claim-txt" disabled>TXT 저장</button>
+          </div>
+        </div>
+        <div class="claim-summary" id="claim-summary-box" hidden>
+          <div class="claim-summary-head"><h3>신고 폼용 요약 (400자 이내)</h3>
+            <button type="button" class="link-btn" id="btn-claim-summary-copy">복사</button>
+          </div>
+          <p id="claim-summary"></p>
+        </div>
+        <pre class="claim-out" id="claim-out">왼쪽 내용을 채우고 <strong>사유서 만들기</strong>를 누르면 여기에 초안이 나옵니다.</pre>
+        <div class="claim-extras">
+          <div>
+            <h3>준비물 체크리스트</h3>
+            <ul class="checklist" id="claim-checklist"></ul>
+          </div>
+          <div>
+            <h3>주의</h3>
+            <ul class="warn-list" id="claim-warnings"></ul>
+          </div>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ═══ AI 브리지 ═══ -->
+  <section class="view" id="view-bridge" role="tabpanel" aria-labelledby="tab-bridge" hidden>
+    <div class="page-head">
+      <p class="kicker">AI BRIDGE</p>
+      <h1>내 구독 AI에게 <em>사장님 맥락</em>을 넘기기.</h1>
+      <p class="lead">지금 화면의 리뷰·매장 정보·금지 규칙을 프롬프트로 묶어 줍니다. 복사해서 ChatGPT·Claude·Gemini에 붙여넣으면 같은 답글을 더 다듬을 수 있습니다. API 키는 필수가 아닙니다.</p>
+    </div>
+    <div class="bridge-grid">
+      <section class="panel">
+        <div class="step-head"><span class="step-no">01</span><h2>프롬프트</h2>
+          <button type="button" class="link-btn" id="btn-bridge-build">지금 리뷰로 다시 만들기</button>
+        </div>
+        <div class="bridge-context" id="bridge-context">답글 작성 화면의 리뷰를 기준으로 만듭니다.</div>
+        <label class="sr-only" for="bridge-prompt">AI에 보낼 프롬프트</label>
+        <textarea id="bridge-prompt" class="input area mono" rows="12" readonly></textarea>
+        <div class="bridge-opts">
+          <label class="field"><span>답글 개수</span>
+            <select id="br-count" class="input select mini"><option value="3" selected>3개</option><option value="1">1개</option></select>
+          </label>
+          <label class="switch"><input type="checkbox" id="br-emoji" checked /> <span>이모지 허용(최대 1개)</span></label>
+        </div>
+        <label class="field"><span>추가 요청 (선택)</span><input id="br-extra" class="input" type="text" placeholder="예: 너무 길지 않게, 반말은 빼고" maxlength="120" /></label>
+        <div class="bridge-actions">
+          <button type="button" class="btn btn-primary" id="btn-bridge-copy">프롬프트 복사</button>
+          <button type="button" class="btn btn-ghost" data-open-ai="chatgpt">ChatGPT 열기</button>
+          <button type="button" class="btn btn-ghost" data-open-ai="claude">Claude 열기</button>
+          <button type="button" class="btn btn-ghost" data-open-ai="gemini">Gemini 열기</button>
+        </div>
+        <p class="form-note">새 창으로 열립니다. 붙여넣고 답글을 받은 뒤, 아래에 붙여넣으면 후보로 가져옵니다.</p>
+
+        <div class="step-head mt"><span class="step-no">02</span><h2>받은 답글 붙여넣기</h2></div>
+        <textarea id="ai-paste" class="input area" rows="4" placeholder="AI가 준 답글을 그대로 붙여넣으세요. 빈 줄로 구분하면 여러 개를 나눠 담습니다."></textarea>
+        <button type="button" class="btn btn-ghost" id="btn-ai-import">답글 카드로 가져오기</button>
+      </section>
+
+      <section class="panel">
+        <div class="step-head"><span class="step-no">03</span><h2>Gemini API (선택)</h2>
+          <span class="badge-lock">키는 저장하지 않음</span>
+        </div>
+        <p class="panel-note">무료 API 키가 있으면 여기서 바로 답글을 받을 수 있습니다. 키는 이 탭의 메모리에만 있고, 새로고침하면 사라집니다. 입력한 리뷰와 매장 정보만 Google로 전송됩니다.</p>
+        <label class="field"><span>API 키</span>
+          <input id="gem-key" class="input" type="password" autocomplete="off" placeholder="API 키 붙여넣기" />
+        </label>
+        <label class="field"><span>모델</span>
+          <input id="gem-model" class="input" type="text" value="gemini-2.5-flash" maxlength="40" />
+        </label>
+        <button type="button" class="btn btn-primary" id="btn-gem-run">이 프롬프트로 답글 받기</button>
+        <p class="status" id="gem-status" aria-live="polite"></p>
+        <div class="ai-result" id="gem-out" hidden></div>
+        <button type="button" class="btn btn-ghost btn-sm" id="btn-gem-import" hidden>받은 답글을 카드로</button>
+        <div class="privacy-box">
+          <h3>이 프롬프트에 들어가는 것</h3>
+          <ul>
+            <li>가게 이름·업종·시그니처·주차·영업시간·한 줄 소개</li>
+            <li>리뷰 원문과 자동으로 읽은 포인트</li>
+            <li>금지 규칙(의료법·표시광고·개인정보)</li>
+          </ul>
+          <p>계정 정보, 연락처 목록, 다른 화면의 내용은 넣지 않습니다.</p>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ═══ 매장 설정 ═══ -->
+  <section class="view" id="view-store" role="tabpanel" aria-labelledby="tab-store" hidden>
+    <div class="page-head">
+      <p class="kicker">STORE PROFILE</p>
+      <h1>가게 이야기를 넣을수록, <em>덜 자동응답 같아집니다.</em></h1>
+      <p class="lead">여기 적은 내용은 답글에 그대로 들어갑니다. 실제로 하는 것만 적으세요. 저장은 이 브라우저에만 됩니다.</p>
+    </div>
+    <div class="store-grid">
+      <section class="panel">
+        <div class="step-head"><span class="step-no">01</span><h2>기본</h2>
+          <button type="button" class="link-btn" id="btn-store-sample">가상 예시</button>
+        </div>
+        <div class="field-row">
+          <label class="field"><span>가게 이름</span><input id="s-name" class="input" type="text" placeholder="예: 오늘식당" maxlength="30" /></label>
+          <label class="field"><span>업종</span><select id="s-industry" class="input select"></select></label>
+        </div>
+        <label class="field"><span id="s-signature-label">시그니처 메뉴</span>
+          <input id="s-signature" class="input" type="text" placeholder="예: 들깨칼국수" maxlength="40" />
+        </label>
+        <div class="field-row">
+          <label class="field"><span>주차</span>
+            <select id="s-parking" class="input select">
+              <option value="">선택 안 함</option>
+              <option value="shopfront">가게 앞</option>
+              <option value="building">건물 주차장</option>
+              <option value="nearby">근처 공영주차장</option>
+              <option value="none">주차 어려움</option>
+            </select>
+          </label>
+          <label class="field"><span>주차 상세 (선택)</span><input id="s-parking-note" class="input" type="text" placeholder="예: 가게 뒤편 3대" maxlength="60" /></label>
+        </div>
+        <label class="field"><span>문의 번호</span><input id="s-phone" class="input" type="tel" placeholder="010-0000-0000" maxlength="20" /></label>
+        <label class="field"><span>영업시간 (선택)</span><input id="s-hours" class="input" type="text" placeholder="예: 11:00~21:00 (브레이크 15:00~17:00)" maxlength="60" /></label>
+        <label class="field"><span>우리 가게 한 줄 (선택)</span>
+          <input id="s-story" class="input" type="text" placeholder="예: 육수는 매일 아침 새로 냅니다." maxlength="80" />
+        </label>
+        <div class="field-row">
+          <label class="switch"><input type="checkbox" id="s-benefit-on" /> <span>재방문 혜택이 있습니다</span></label>
+          <label class="field"><span>혜택 내용</span><input id="s-benefit" class="input" type="text" placeholder="예: 공기밥 서비스" maxlength="40" /></label>
+        </div>
+        <p class="field-warn" id="benefit-warn" hidden>병원 업종은 의료법상 환자 유인(할인·사은품) 문구를 답글에 넣지 않습니다.</p>
+        <div class="field-row">
+          <label class="field"><span>기본 말투</span><select id="s-tone" class="input select"></select></label>
+          <label class="field"><span>기본 플랫폼</span><select id="s-platform" class="input select"></select></label>
+        </div>
+        <div class="store-actions">
+          <button type="button" class="btn btn-primary" id="btn-store-save">저장</button>
+          <button type="button" class="btn btn-ghost" id="btn-store-reset">비우기</button>
+          <span class="status" id="store-status" aria-live="polite"></span>
+        </div>
+      </section>
+      <aside class="panel store-side">
+        <h2>이 정보가 답글에서 하는 일</h2>
+        <dl class="role-list">
+          <div><dt>가게 이름</dt><dd>첫 문장과 마무리에 들어갑니다. 답글이 어느 가게 글인지 분명해집니다.</dd></div>
+          <div><dt>시그니처</dt><dd>칭찬 답글에서 다음 방문의 이유가 됩니다. 리뷰에 없는 메뉴를 권하지 않도록 한 번만 씁니다.</dd></div>
+          <div><dt>한 줄 소개</dt><dd>실제로 하는 일을 그대로 넣습니다. 답글이 가장 덜 자동응답처럼 보이는 지점입니다.</dd></div>
+          <div><dt>문의 번호</dt><dd>컴플레인 답글에서 공개 답글 대신 직접 연락을 안내합니다.</dd></div>
+          <div><dt>재방문 혜택</dt><dd>단골 답글에만 넣습니다. 병원·배달 플랫폼은 정책상 넣지 않습니다.</dd></div>
+        </dl>
+        <div class="privacy-box">
+          <h3>저장 위치</h3>
+          <p>이 브라우저의 localStorage에만 저장합니다. 서버로 보내지 않고, 계정도 만들지 않습니다. 공용 PC에서는 저장 후 <strong>비우기</strong>를 눌러 주세요.</p>
+        </div>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <strong>사장님 리뷰 답글 스튜디오</strong>
+      <p>리뷰 답글을 조립하는 도구입니다. 생성된 문장은 올리기 전에 사장님이 직접 확인하세요.</p>
+    </div>
+    <div class="footer-links">
+      <a href="privacy.html" id="footer-privacy">개인정보 처리방침</a>
+      <a href="README.md">사용 안내</a>
+    </div>
+    <p class="footer-note">서버 전송 0건 · 회원가입 없음 · 법률 자문 아님<br />© 2026 Review Reply Studio</p>
+  </div>
+</footer>
+
+<div class="toast-root" id="toast-root" aria-live="polite" aria-atomic="true"></div>
+
+<script src="data.js"></script>
+<script src="engines/pro-api-connector.js"></script>
+<script src="engines/pro-studio.js"></script>
+<script src="engines/copy-psych-engine.js"></script>
+<script src="engines/design-ref-engine.js"></script>
+<script src="core.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

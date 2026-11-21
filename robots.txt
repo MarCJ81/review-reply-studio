@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://marcj81.github.io/review-reply-studio/sitemap.xml
