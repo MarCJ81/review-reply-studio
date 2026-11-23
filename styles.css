@@ -728,3 +728,8 @@ html[data-theme="dark"] .tile-ink-glow { background: radial-gradient(circle, rgb
   .pro-badge-slot .proconn-badge .pc-sub { display: none; }
   .btn.pro-btn { flex: 1 1 100%; }
 }
+
+/* ══ 무료 AI 맛보기 (free-ai.js) ═══════════════════════ */
+.freeai-line { margin: 8px 0 0; display: flex; }
+.freeai-line:empty { display: none; }
+.free-upgrade-slot:empty { display: none; }

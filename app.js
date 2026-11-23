@@ -260,6 +260,8 @@
     if (a.aspectLabels.length) bits.push('포인트: ' + escapeHtml(a.aspectLabels.slice(0, 3).join(', ')));
     if (a.flags.photo) bits.push('사진');
     if (a.flags.regular) bits.push('단골');
+    const feel = a.feeling ? feelingText(a.feeling) : '';
+    if (feel) bits.push(feel);
     $('#detect-badge').innerHTML = bits.join(' · ') + ' — ' + escapeHtml(sit.reason);
   }
 
@@ -653,6 +655,120 @@
     };
   }
 
+  /* 감성 판정 문구 — 단어 수가 아니라 부정어·완곡·강조를 반영한 결과 */
+  function feelingText(f) {
+    const map = { positive: '긍정', negative: '부정', mixed: '좋다·아쉬움 섞임', neutral: '중립' };
+    let label = map[f.label] || '';
+    if (f.label === 'negative' && f.soft) label = '완곡한 아쉬움';
+    if (f.label === 'mixed' && f.soft) label = '완곡하게 섞임';
+    if (f.negated && f.negated.length) label += ' · 부정어 뒤집힘 ' + f.negated.length;
+    if (f.hedges && f.hedges.length) label += ' · 유보 표현';
+    return label ? '감성: ' + label : '';
+  }
+
+  /* ── 무료 AI 맛보기 (free-ai.js) ──────────────────────── */
+  const FREE = window.FreeAI || null;
+
+  function freePromptForReplies(form, analysis, situation) {
+    const lines = [];
+    lines.push('[리뷰]');
+    lines.push(String(form.review || '').slice(0, 600));
+    lines.push('');
+    lines.push('[조건] 업종 ' + form.industry + ' · 플랫폼 ' + form.platform + ' · 말투 ' + form.tone + ' · 상황 ' + situation +
+      (analysis.rating ? ' · 별점 ' + analysis.rating : ''));
+    if (analysis.aspectLabels.length) lines.push('포인트: ' + analysis.aspectLabels.slice(0, 3).join(', '));
+    if (state.profile && state.profile.name) lines.push('가게 이름: ' + state.profile.name);
+    lines.push('');
+    lines.push('위 리뷰에 사장님이 직접 다는 답글 2개를 아래 JSON만으로 출력하세요. 설명·코드펜스 금지.');
+    lines.push('{"replies":[{"tone":"warm","text":"..."},{"tone":"pro","text":"..."}]}');
+    lines.push('조건: 각 2~3문장(80~140자), 리뷰에 있는 사실만, 사과는 최대 한 번, 다음 방문 유도 1회, 이모지는 최대 1개, 과장·최상급 금지.');
+    return lines.join('\n');
+  }
+
+  function parseFreeReplies(text) {
+    const raw = String(text || '');
+    let data = null;
+    const first = raw.indexOf('{');
+    const last = raw.lastIndexOf('}');
+    if (first >= 0 && last > first) {
+      try { data = JSON.parse(raw.slice(first, last + 1)); } catch (e) { data = null; }
+    }
+    if (data && Array.isArray(data.replies)) {
+      return data.replies.map(function (r) {
+        return { tone: String((r && r.tone) || '').trim(), text: String((r && r.text) || '').trim() };
+      }).filter(function (r) { return r.text; });
+    }
+    // JSON 이 아니면 답글만 줄 단위로 줍는다.
+    return raw.split(/\n+/).map(function (line) {
+      return { tone: '', text: line.replace(/^\s*[-*\d.]+\s*/, '').trim() };
+    }).filter(function (r) { return r.text.length >= 20; }).slice(0, 2);
+  }
+
+  function runFreeReplies() {
+    if (!FREE) { toast('무료 체험 모듈을 불러오지 못했습니다. 새로고침해 주세요.'); return; }
+    if (state.pro.busy) return;
+    const form = currentForm();
+    if (!form.review.trim()) { toast('리뷰를 먼저 붙여넣어 주세요.'); $('#f-review').focus(); return; }
+    const analysis = C.analyzeReview(form.review, { rating: form.rating });
+    const sit = C.pickSituation(analysis, { situation: state.situation });
+    const btn = $('#btn-free-replies');
+    const stateEl = $('#proState');
+    state.pro.busy = true;
+    if (btn) { btn.disabled = true; btn.textContent = '무료 AI가 쓰는 중…'; }
+    if (stateEl) stateEl.textContent = '무료 체험으로 답글을 쓰는 중… (보통 3~10초)';
+    const host = $('#freeUpgrade');
+    if (host) host.innerHTML = '';
+    FREE.generate({
+      prompt: freePromptForReplies(form, analysis, sit.label),
+      system: '한국어 리뷰 답글을 쓰는 동네 가게 사장이다. 과장 없이, 리뷰에 있는 사실만 쓴다. 출력은 JSON 하나만.',
+      options: { temperature: 0.7, maxTokens: 900, json: true }
+    }).then(function (res) {
+      state.pro.busy = false;
+      if (btn) { btn.disabled = false; btn.textContent = '무료 AI 답글 맛보기'; }
+      if (!res.ok) {
+        if (host) {
+          FREE.mountUpgrade(host, res, {
+            onConnectKey: function () { if (P && P.mountModal) P.mountModal($('#proConnect')); PS.openConnect(); },
+            onBridge: function () { setTab('bridge'); }
+          });
+        }
+        if (stateEl) stateEl.textContent = res.message;
+        toast(res.message);
+        return;
+      }
+      const list = parseFreeReplies(res.text);
+      if (!list.length) {
+        if (stateEl) stateEl.textContent = '응답에 답글이 비어 있습니다. 다시 시도해 주세요.';
+        toast('응답에 답글이 비어 있습니다. 다시 시도해 주세요.');
+        return;
+      }
+      const cards = proReplyCards({ replies: list }).map(function (c) {
+        return Object.assign({}, c, { toneLabel: c.toneLabel.replace(' · Pro', ' · 무료 체험') });
+      });
+      const base = C.generateReplies({
+        review: form.review, rating: form.rating, situation: state.situation, tone: form.tone,
+        platform: form.platform, industry: form.industry, profile: state.profile,
+        compare: form.compare, period: form.period, noticeType: form.noticeType, seed: state.seed,
+      });
+      state.replies = cards;
+      state.lastReview = form.review;
+      state.meta = base;
+      const replyList = $('#reply-list');
+      replyList.innerHTML = '';
+      state.replies.forEach(function (r, i) { replyList.appendChild(replyCard(r, i)); });
+      $('#reply-title').textContent = '무료 체험 · ' + base.situation.label + ' 답글 ' + state.replies.length + '개';
+      $('#reply-meta').innerHTML = ['무료 체험(하루 몇 회)으로 만든 답글입니다. 게시 전에 사실 확인을 한 번 해 주세요.',
+        C.platformById(form.platform).short].join(' <span class="dot">·</span> ');
+      $('#btn-copy-all').disabled = false;
+      renderQuality();
+      updateTopAction();
+      const left = (res.remaining === undefined || res.remaining === null) ? '' : ' · 남은 맛보기 ' + res.remaining + (res.limit ? '/' + res.limit : '') + '회';
+      if (stateEl) stateEl.textContent = '무료 체험 답글 ' + state.replies.length + '안을 점검기로 다시 확인했습니다.' + left;
+      saveStore(true);
+      toast('무료 체험 답글 ' + state.replies.length + '안을 만들었습니다.');
+    });
+  }
+
   function setProBusy(on) {
     state.pro.busy = !!on;
     const btn = $('#btn-pro-replies');
@@ -777,6 +893,13 @@
   }
 
   function initPro() {
+    if (FREE) {
+      FREE.configure({ app: 'review-reply-studio' });
+      const fb = $('#freeBadge');
+      if (fb) FREE.mountBadge(fb);
+    }
+    const freeBtn = $('#btn-free-replies');
+    if (freeBtn) freeBtn.addEventListener('click', runFreeReplies);
     if (!PS) return;
     PS.badge('#proBadge');
     hookProConnect();

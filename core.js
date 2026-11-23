@@ -154,6 +154,104 @@
   const POSITIVE_WORDS = ['맛있', '좋았', '좋아요', '친절', '깨끗', '만족', '추천', '훌륭', '감사', '또 오', '또 올', '다시 오', '믿고', '최고', '잘 먹', '잘했', '편했', '아늑', '넉넉', '시원'];
   const NEGATIVE_WORDS = ['안 ', '별로', '실망', '최악', '불친절', '더럽', '비싸', '늦', '식어', '이물', '아쉬', '불편', '다시는', '짜증', '화나', '환불', '사과도', '없', '힘들', '좁', '시끄', '지저분', '오래', '잘못'];
 
+  /* ── 감성 판정 (부정·완곡·강조) ──────────────────────────
+     단어 목록만 세면 "친절하지 않았어요"를 칭찬으로 읽는다.
+     그래서 ① 부정어가 붙은 단어는 뒤집고, ② 완곡·유보 표현은
+     약한 부정으로, ③ 강조어는 세기를 키우고, ④ 이모지·ㅠㅠ 는
+     문장 단위 신호로 더한다. */
+  const NEGATORS = ['안', '못', '않', '없이', '아니', '전혀', '별로', '그닥', '딱히'];
+  const HEDGES = ['다만', '그런데', '아쉽지만', '조금', '살짝', '약간', '좀', '그나마', '생각보다', '의외로', '웬만'];
+  const SOFT_NEG = [
+    { w: '아쉬', wgt: 0.7 }, { w: '그럭저럭', wgt: 0.9 }, { w: '무난', wgt: 0.5 },
+    { w: '기대 이하', wgt: 1.2 }, { w: '굳이', wgt: 0.8 }, { w: '다신', wgt: 1.2 },
+    { w: '안 갈', wgt: 1.2 }, { w: '그저 그', wgt: 1.0 }, { w: '나쁘지 않', wgt: -0.4 },
+    { w: '괜찮', wgt: -0.6 }, { w: '좋진 않', wgt: 0.9 }, { w: '좋지 않', wgt: 0.9 },
+    { w: '실망', wgt: 1.2 }, { w: '불만', wgt: 1.0 }, { w: '그닥', wgt: 1.0 },
+    { w: '별로였', wgt: 1.1 }, { w: '좀 그렇', wgt: 0.8 }
+  ];
+  const INTENSIFIERS = ['너무', '정말', '완전', '진짜', '엄청', '매우', '아주', '무지', '겁나'];
+
+  function scoreSentiment(text) {
+    const t = str(text);
+    const clauses = t.split(/[.!?\n\r,~]+/).map(function (x) { return x.trim(); }).filter(Boolean);
+    let score = 0;
+    const positive = [];
+    const negative = [];
+    const negated = [];
+    const hedged = [];
+    let intensity = 1;
+
+    if (/ㅠ|ㅜ|😭|😢|😡|😤|💩/.test(t)) score -= 0.8;
+    if (/ㅋㅋ|ㅎㅎ|😊|😍|👍|❤|💕|✨/.test(t)) score += 0.5;
+    INTENSIFIERS.forEach(function (w) { if (t.indexOf(w) >= 0) intensity = Math.min(1.6, intensity + 0.2); });
+    HEDGES.forEach(function (w) { if (t.indexOf(w) >= 0) { hedged.push(w); intensity = Math.max(0.6, intensity - 0.15); } });
+
+    function negatedAt(clause, idx) {
+      const before = clause.slice(Math.max(0, idx - 8), idx);
+      const after = clause.slice(idx, idx + 14);
+      return NEGATORS.some(function (n) { return before.indexOf(n) >= 0; })
+        || /지\s*(않|못)/.test(after) || /(지않|진않|질않)/.test(after)
+        || /지(도|는|가|를|만)?\s*(않|못)/.test(after)
+        || /(않았|않아|않아요|않습니다|않았어요|못했|못합)/.test(after);
+    }
+
+    clauses.forEach(function (clause) {
+      POSITIVE_WORDS.forEach(function (w) {
+        let idx = clause.indexOf(w);
+        while (idx >= 0) {
+          if (negatedAt(clause, idx)) { negated.push(w); score -= 1.0; }
+          else { positive.push(w); score += 1.0; }
+          idx = clause.indexOf(w, idx + w.length);
+        }
+      });
+      NEGATIVE_WORDS.forEach(function (w) {
+        let idx = clause.indexOf(w);
+        while (idx >= 0) {
+          if (negatedAt(clause, idx)) { negated.push(w); score += 0.4; }
+          else { negative.push(w); score -= 1.0; }
+          idx = clause.indexOf(w, idx + w.length);
+        }
+      });
+      SOFT_NEG.forEach(function (h) {
+        if (clause.indexOf(h.w) < 0) return;
+        // 이미 센 단어와 겹치면 두 번 세지 않는다("별로" + "별로였")
+        const dup = negative.concat(positive).some(function (w) {
+          return w.indexOf(h.w) >= 0 || h.w.indexOf(w) >= 0;
+        });
+        if (dup) return;
+        if (h.wgt < 0) {
+          if (h.w.indexOf('않') < 0 && negatedAt(clause, clause.indexOf(h.w))) { negative.push(h.w); score -= 0.5; return; }
+          positive.push(h.w); score -= h.wgt;
+        }
+        else { negative.push(h.w); score -= h.wgt; }
+      });
+    });
+
+    score *= intensity;
+    // 완곡 표지가 많으면 확신을 낮춘다(단정하지 않는다).
+    const confidence = Math.max(0.35, Math.min(1, 0.6 + Math.min(0.4, Math.abs(score) * 0.12) - hedged.length * 0.12));
+    const bounded = Math.max(-3, Math.min(3, Math.round(score * 10) / 10));
+    const posCount = positive.length;
+    const negCount = negative.length + negated.filter(function (w) { return POSITIVE_WORDS.indexOf(w) >= 0; }).length;
+    const contrast = /지만|근데|however|반면/.test(t);
+    let label = 'neutral';
+    if (posCount && negCount) label = (Math.abs(bounded) >= 1.5 && !contrast) ? (bounded > 0 ? 'positive' : 'negative') : 'mixed';
+    else if (bounded > 0.2) label = 'positive';
+    else if (bounded < -0.2) label = 'negative';
+    if (label === 'positive' && negCount === 0 && posCount === 0 && bounded <= 0.2) label = 'neutral';
+    return {
+      score: bounded,
+      label: label,
+      intensity: Math.round(intensity * 100) / 100,
+      confidence: Math.round(confidence * 100) / 100,
+      positive: uniq(positive),
+      negative: uniq(negative),
+      negated: uniq(negated),
+      hedges: uniq(hedged),
+      soft: hedged.length > 0 || /아쉬|그럭저럭|무난|괜찮|다만/.test(t)
+    };
+  }
+
   function splitSentences(text) {
     return str(text).split(/[.!?\n\r]+/).map(function (s) { return s.trim(); }).filter(Boolean);
   }
@@ -206,13 +304,15 @@
     const parsedRating = detectRating(raw);
     const rating = Number(opts.rating) > 0 ? Number(opts.rating) : parsedRating;
     const sentences = splitSentences(clean);
-    const posHits = POSITIVE_WORDS.filter(function (w) { return clean.indexOf(w) >= 0; });
-    const negHits = NEGATIVE_WORDS.filter(function (w) { return clean.indexOf(w) >= 0; });
+    const feeling = scoreSentiment(clean);
+    const posHits = feeling.positive;
+    const negHits = uniq(feeling.negative.concat(feeling.negated.filter(function (w) { return POSITIVE_WORDS.indexOf(w) >= 0; })));
     let sentiment = 0;
     if (rating >= 4) sentiment = 1;
     else if (rating > 0 && rating <= 2) sentiment = -1;
-    else if (posHits.length > negHits.length) sentiment = 1;
-    else if (negHits.length > posHits.length) sentiment = -1;
+    else if (feeling.label === 'positive') sentiment = 1;
+    else if (feeling.label === 'negative') sentiment = -1;
+    else if (feeling.label === 'mixed') sentiment = feeling.score > 0 ? 1 : -1;
 
     const aspects = aspectsOf(clean);
     const flags = {
@@ -237,6 +337,7 @@
       clean: clean,
       rating: rating,
       sentiment: sentiment,
+      feeling: feeling,
       aspects: aspects,
       aspectLabels: aspects.map(function (a) { return a.label; }),
       negatives: negHits,
@@ -267,7 +368,10 @@
     if (f.regular) return decide('regular', '단골·재방문 표현이 있습니다.', 0.75);
     if (r === 4) return decide('meh', '별점 4점 — 아쉬움을 먼저 짚습니다.', 0.8);
     if (r === 5) return decide('praise', '별점 5점 — 칭찬 답글입니다.', 0.95);
-    if (analysis.sentiment < 0) return decide('crisis', '부정 표현이 많습니다. 컴플레인으로 처리합니다.', 0.6);
+    const feel = analysis.feeling;
+    if (feel && feel.label === 'mixed') return decide('meh', '좋다·아쉽다가 섞여 있습니다. 아쉬운 부분을 먼저 짚습니다.', feel.confidence);
+    if (feel && feel.soft && feel.score > -1.2) return decide('meh', '완곡한 아쉬움이 있습니다. 과하게 사과하지 않고 한 가지만 짚습니다.', Math.max(0.5, feel.confidence - 0.1));
+    if (analysis.sentiment < 0) return decide('crisis', '부정 표현이 많습니다. 컴플레인으로 처리합니다.', feel ? Math.max(0.6, feel.confidence) : 0.6);
     if (analysis.sentiment === 0) return decide('meh', '좋다·아쉽다가 섞여 있습니다.', 0.55);
     return decide('praise', '긍정 표현이 중심입니다.', 0.7);
   }
@@ -1273,7 +1377,7 @@
     /* profile */
     emptyProfile, normalizeProfile, parkingLine, storeCompleteness,
     /* analysis */
-    analyzeReview, pickSituation, detectRating, stripRating, aspectsOf, splitSentences,
+    analyzeReview, pickSituation, detectRating, stripRating, aspectsOf, splitSentences, scoreSentiment,
     /* generation */
     generateReplies, composeReply, buildContext,
     /* checking */

@@ -209,10 +209,13 @@
           <button type="button" class="btn pro-btn" id="btn-pro-replies" data-pro-action>
             <span class="pro-spark" aria-hidden="true">✨</span><span class="pro-label">Pro AI로 맞춤 답글 3안 생성</span>
           </button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-free-replies">무료 AI 답글 맛보기</button>
           <button type="button" class="btn btn-ghost btn-sm" id="proConnect">Pro 연결 / 관리</button>
           <p class="pro-state" id="proState" data-pro-state
              data-pro-free="무료 모드 · 위의 답글 3개 만들기는 그대로 동작합니다. Pro를 연결하면 리뷰 문맥을 읽은 맞춤 답글 3안을 씁니다."
              data-pro-pro="Pro 연결됨 · 리뷰 문맥·업종·법규 회피를 지킨 답글 3안을 쓰고 점검기를 다시 통과시킵니다.">무료 모드 · 위의 답글 3개 만들기는 그대로 동작합니다. Pro를 연결하면 리뷰 문맥을 읽은 맞춤 답글 3안을 씁니다.</p>
+          <p class="freeai-line" id="freeBadgeLine"><span id="freeBadge"></span></p>
+          <div id="freeUpgrade" class="free-upgrade-slot"></div>
         </div>
         <p class="pro-note" id="proNote" hidden></p>
 
@@ -491,6 +494,7 @@
 <script src="data.js"></script>
 <script src="engines/pro-api-connector.js"></script>
 <script src="engines/pro-studio.js"></script>
+<script src="engines/free-ai.js"></script>
 <script src="engines/copy-psych-engine.js"></script>
 <script src="core.js"></script>
 <script src="app.js"></script>
