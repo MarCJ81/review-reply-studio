@@ -670,19 +670,11 @@
   const FREE = window.FreeAI || null;
 
   function freePromptForReplies(form, analysis, situation) {
-    const lines = [];
-    lines.push('[리뷰]');
-    lines.push(String(form.review || '').slice(0, 600));
-    lines.push('');
-    lines.push('[조건] 업종 ' + form.industry + ' · 플랫폼 ' + form.platform + ' · 말투 ' + form.tone + ' · 상황 ' + situation +
-      (analysis.rating ? ' · 별점 ' + analysis.rating : ''));
-    if (analysis.aspectLabels.length) lines.push('포인트: ' + analysis.aspectLabels.slice(0, 3).join(', '));
-    if (state.profile && state.profile.name) lines.push('가게 이름: ' + state.profile.name);
-    lines.push('');
-    lines.push('위 리뷰에 사장님이 직접 다는 답글 2개를 아래 JSON만으로 출력하세요. 설명·코드펜스 금지.');
-    lines.push('{"replies":[{"tone":"warm","text":"..."},{"tone":"pro","text":"..."}]}');
-    lines.push('조건: 각 2~3문장(80~140자), 리뷰에 있는 사실만, 사과는 최대 한 번, 다음 방문 유도 1회, 이모지는 최대 1개, 과장·최상급 금지.');
-    return lines.join('\n');
+    // 워커는 짧은 입력에서 안정적이다. 리뷰 앞부분과 조건만 넣는다.
+    const review = String(form.review || '').replace(/\s+/g, ' ').slice(0, 70);
+    const cond = String(form.tone || '정중').slice(0, 8) + ' · ' + String(situation || '일반').slice(0, 10);
+    return '한국어 리뷰 답글 맛보기. 리뷰: ' + review + ' / 조건: ' + cond +
+      '. 사장님 답글 2개를 JSON만으로: {"replies":[{"text":"…"}×2]}. 각 2문장, 90자 이내.';
   }
 
   function parseFreeReplies(text) {
@@ -720,8 +712,7 @@
     if (host) host.innerHTML = '';
     FREE.generate({
       prompt: freePromptForReplies(form, analysis, sit.label),
-      system: '한국어 리뷰 답글을 쓰는 동네 가게 사장이다. 과장 없이, 리뷰에 있는 사실만 쓴다. 출력은 JSON 하나만.',
-      options: { temperature: 0.7, maxTokens: 900, json: true }
+      options: { temperature: 0.7, maxTokens: 700, json: true }
     }).then(function (res) {
       state.pro.busy = false;
       if (btn) { btn.disabled = false; btn.textContent = '무료 AI 답글 맛보기'; }
