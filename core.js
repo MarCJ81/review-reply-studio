@@ -721,7 +721,7 @@
       toneId: tone.id,
       aspectLabel: topAspect,
       aspectId: topAspectId,
-      period: cleanLine(input.period, 40) || '이번 주말',
+      period: cleanLine(input.period, 40) || ((typeof window !== 'undefined' && window.ONETAP_LANG === 'en') ? 'this weekend' : '이번 주말'),
       noticeType: input.noticeType || 'closed',
       salt: hash([analysis.clean, industry.id, platform.id, situation.id, tone.id, input.seed || 0].join('|')),
     };
@@ -756,11 +756,12 @@
         seed: input.seed || 0,
       });
       let variant = i;
-      let text = composeReply(ctx, situationPick.id, variant);
+      const EN = (typeof window !== 'undefined' && window.ONETAP_LANG === 'en');
+      let text = EN ? composeReplyEN(ctx, situationPick.id, variant) : composeReply(ctx, situationPick.id, variant);
       let guard = 0;
       while (seen[text] && guard++ < 4) {
         variant += 3;
-        text = composeReply(ctx, situationPick.id, variant);
+        text = EN ? composeReplyEN(ctx, situationPick.id, variant) : composeReply(ctx, situationPick.id, variant);
       }
       seen[text] = true;
       const check = checkReply(text, {
@@ -791,6 +792,91 @@
         advice: replyAdvice(analysis, profile, industry, platform),
       },
     };
+  }
+
+
+  /* ==========================================================
+     English reply composer (EN UI). Korean composer unchanged.
+     ========================================================== */
+  const ASPECT_FIX_EN = {
+    taste: 'the seasoning and cooking time', fresh: 'the daily ingredient check', kind: 'staff training on tone',
+    clean: 'the cleaning checklist', mood: 'the seating layout and lighting', value: 'portion and pricing',
+    wait: 'the queue and seating', delivery: 'packing and sealing', parking: 'the parking guide',
+    location: 'the directions in our listing', care: 'the consultation script', result: 'the follow-up check',
+    room: 'the room inspection', lesson: 'the lesson plan',
+  };
+
+  function composeReplyEN(ctx, situationId, variant) {
+    const store = (ctx.profile && ctx.profile.name) || 'the shop';
+    const aspect = ctx.aspectLabel || 'experience';
+    const fix = ASPECT_FIX_EN[ctx.aspectId] || 'how we handle this';
+    const v = Math.abs(variant || 0) % 3;
+    const period = ctx.period || 'this weekend';
+    const sig = (ctx.profile && ctx.profile.signature) ? ' — ' + ctx.profile.signature : '';
+    const pro = ctx.toneId === 'pro';
+    const mz = ctx.toneId === 'mz';
+
+    if (situationId === 'crisis') {
+      return [
+        'Thank you for telling us, and sorry that this is how your visit ended. We are checking what happened that day rather than guessing here. Please call the shop so we can look into it properly and tell you what we find.',
+        'We read this carefully. Something like this should never reach a table, and we are reviewing the whole process behind it. Could you contact us directly so we can confirm the details? We would rather settle it with you than in a public thread.',
+        'Sorry is the first thing we owe you. We have kept the record of that day and we are going through it. Please reach us at the shop number on our profile so we can respond properly.'
+      ][v] + sig;
+    }
+
+    if (situationId === 'meh') {
+      return [
+        'Thank you for the honest note. You are right that ' + aspect + ' could have been better, and we have changed ' + fix + ' since your visit. If you come again, tell us it is you and we will make sure it is a better one.',
+        'Thank you for saying it plainly. We would rather hear this than lose you quietly. ' + aspect + ' is the part we have been working on, starting with ' + fix + '.',
+        'Sorry the visit was only half right. We took your note to the team and changed ' + fix + '. We would like the chance to do it properly next time.'
+      ][v] + sig;
+    }
+
+    if (situationId === 'regular') {
+      return [
+        'Thank you for coming back again. Regulars like you are the reason we keep the same recipe and the same hours. See you next time.',
+        'Every visit counts, and this is not the first — thank you. We will keep the table you like as long as we can.',
+        'It means a lot that you keep choosing us. Nothing changes in the kitchen because of that, which is exactly the point.'
+      ][v] + sig;
+    }
+
+    if (situationId === 'photo') {
+      return [
+        'Thank you for the photo — it is good to see the plate from the other side of the table. Glad the portion worked for you. Come back soon.',
+        'Thanks for adding the picture. We look at these to check how it actually arrives at the table, so this helps more than you think.',
+        'The photo made our morning. Thank you for taking the time, and for the kind words about the food.'
+      ][v] + sig;
+    }
+
+    if (situationId === 'notice') {
+      return [
+        'Thank you for asking. We are closed ' + period + '. Booking by phone or message is welcome and we will confirm the same day.',
+        'Sorry we missed your call. Our hours are on the profile and we are closed ' + period + '. Leave a message and we will get back to you.',
+        'Good question — we are closed ' + period + '. We will post any change to our hours on this page first.'
+      ][v] + sig;
+    }
+
+    if (pro) {
+      return [
+        'Thank you for your review. We are glad that ' + aspect + ' met your expectations, and we will keep the same standard. Please visit again.',
+        'Thank you for taking the time to write this. Your note on ' + aspect + ' has been shared with the team as a point to maintain.',
+        'We appreciate your detailed review. It is good to know that ' + aspect + ' came across as intended.'
+      ][v] + sig;
+    }
+
+    if (mz) {
+      return [
+        'This one made our day. Thank you for noticing ' + aspect + ' — we will keep doing the boring parts properly so it stays that way.',
+        'Saving this review for a bad day. Thank you! Next time ask for the signature one, it is on us to recommend it.',
+        'Thank you for the kind words about ' + aspect + '. Come back soon — the door is open early.'
+      ][v] + sig;
+    }
+
+    return [
+      'Thank you for writing this. Hearing that ' + aspect + ' was right means a lot to a small shop, and we will keep the same standard next time.',
+      'Thank you for the kind words. We read every review before opening, and this one set the tone for the day.',
+      'We are glad it worked for you. ' + aspect + ' is the part we spend the most time on, so this is good to hear.'
+    ][v] + sig;
   }
 
   /* ── 점검 ─────────────────────────────────────────────── */
@@ -1152,8 +1238,78 @@
     return n.charAt(0) + '*'.repeat(n.length - 2) + n.charAt(n.length - 1);
   }
 
+
+  function buildClaimEN(input) {
+    const profile = normalizeProfile(input.profile || {});
+    const platform = platformById(input.platform || profile.platform);
+    const violations = (input.violations || []).map(function (id) {
+      return D.VIOLATION_TYPES.find(function (v) { return v.id === id; });
+    }).filter(Boolean);
+    const facts = norm(input.facts || '');
+    const reviewText = str(input.reviewText || '').trim();
+    const storeName = cleanLine(input.storeName || profile.name, 40) || '(store name missing)';
+    const ownerName = cleanLine(input.ownerName, 30) || '(owner missing)';
+    const contact = cleanLine(input.contact || profile.phone, 30) || '(contact missing)';
+    const reviewerName = maskName(input.reviewerName);
+    const reviewDate = cleanLine(input.reviewDate, 20) || '(missing)';
+    const reviewUrl = cleanLine(input.reviewUrl, 200) || '(missing)';
+    const date = cleanLine(input.today, 20) || todayStamp();
+    const evidences = (input.evidences || []).slice();
+    const warnings = [];
+
+    if (!violations.length) warnings.push('Pick at least one violation type so the grounds section is filled in.');
+    if (!facts) warnings.push('The facts section is empty. Write only what you can verify — guesses weaken a report.');
+    if (!reviewText) warnings.push('Paste the review text. Quoting it lets the reviewer check immediately.');
+    if (!input.reviewUrl) warnings.push('Adding the review URL speeds things up. Open the review and copy the address.');
+    if (!evidences.length) warnings.push('Choose at least one piece of evidence. Reports without evidence are often rejected.');
+    warnings.push('The legal citations are for reference only. The decision rests with the platform policy team.');
+    warnings.push('Mask names and numbers in any evidence before submitting.');
+    warnings.push('Reporting something untrue can backfire. State only what you have confirmed.');
+
+    const violationLines = [];
+    violations.forEach(function (v, i) {
+      const para = v.paragraph.split('{facts}').join(facts || '(facts missing)');
+      violationLines.push((i + 1) + ') ' + v.label);
+      violationLines.push('   - Reference: ' + v.law);
+      violationLines.push('   - Grounds: ' + para);
+      violationLines.push('');
+    });
+
+    const sections = [
+      { no: '1', title: 'Applicant', lines: ['- Store: ' + storeName, '- Owner: ' + ownerName, '- Contact: ' + contact] },
+      { no: '2', title: 'Review in question', lines: [
+        '- Platform: ' + platform.label, '- Display name: ' + reviewerName, '- Posted: ' + reviewDate,
+        '- URL: ' + reviewUrl, '- Review text:', '  "' + (reviewText || '(missing)').replace(/\n/g, ' ') + '"',
+      ] },
+      { no: '3', title: 'Grounds', lines: violationLines.length ? violationLines.slice(0, -1) : ['- No violation type selected.'] },
+      { no: '4', title: 'Facts', lines: [facts || '- (missing)'] },
+      { no: '5', title: 'Evidence we can provide', lines: evidences.length ? evidences.map(function (e) { return '- ' + e; }) : ['- (none selected)'] },
+      { no: '6', title: 'Request', lines: ['- Remove and delete the review', '- Apply the platform policy to the author if appropriate', '- Reply to the contact above with the outcome'] },
+      { no: '7', title: 'Confirmation', lines: ['- The above is based on facts we have verified, and we can provide the evidence on request.'] },
+    ];
+
+    const title = 'Request to remove a review';
+    const header = [title, '', 'To: ' + platform.label + ' support', 'From: ' + storeName + ' (owner ' + ownerName + ')',
+      'Contact: ' + contact, 'Date: ' + date, '', ''];
+    const body = header.join('\n') + sections.map(function (s) {
+      return s.no + '. ' + s.title + '\n' + s.lines.join('\n');
+    }).join('\n\n') + '\n\n' + date + '\n' + storeName + ', owner ' + ownerName + ' (signature)';
+
+    const excerpt = reviewText.length > 40 ? reviewText.slice(0, 40) + '…' : reviewText;
+    const summary = norm(
+      'Hello, this is ' + storeName + '. The review posted on ' + reviewDate + ' (' + (excerpt || 'text needed') + ') ' +
+      'falls under ' + (violations.length ? violations.map(function (v) { return v.label; }).join(', ') : 'a platform policy breach') +
+      ', so we ask for it to be taken down. ' + (facts ? facts.slice(0, 120) : 'The facts can be confirmed with the attached records.') +
+      (evidences.length ? ' We can provide ' + evidences.slice(0, 3).join(', ') + '.' : '')
+    ).slice(0, 400);
+
+    const checklist = uniq(['Screenshot of the review (name and date visible)', 'Review URL'].concat(evidences));
+    return { title: title, body: body, summary: summary, checklist: checklist, warnings: warnings, date: date };
+  }
+
   function buildClaim(input) {
     input = input || {};
+    if (typeof window !== 'undefined' && window.ONETAP_LANG === 'en') return buildClaimEN(input);
     const profile = normalizeProfile(input.profile || {});
     const platform = platformById(input.platform || profile.platform);
     const violations = (input.violations || []).map(function (id) {

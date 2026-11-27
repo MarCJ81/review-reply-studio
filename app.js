@@ -560,8 +560,9 @@
     $('#c-facts').value = s.facts;
     $$('#c-violations input').forEach(function (i) { i.checked = s.violations.indexOf(i.value) >= 0; });
     $$('#c-evidences input').forEach(function (i) { i.checked = s.evidences.indexOf(i.value) >= 0; });
-    if (!$('#c-store').value) $('#c-store').value = state.profile.name || '오늘식당';
-    if (!$('#c-owner').value) $('#c-owner').value = '김사장';
+    const enUI = (typeof window !== 'undefined' && window.ONETAP_LANG === 'en');
+    if (!$('#c-store').value) $('#c-store').value = state.profile.name || (enUI ? 'Oneul Kitchen' : '오늘식당');
+    if (!$('#c-owner').value) $('#c-owner').value = enUI ? 'Mr Kim' : '김사장';
     if (!$('#c-contact').value) $('#c-contact').value = state.profile.phone || '010-0000-0000';
     toast('가상 예시를 채웠습니다. 실제 내용으로 바꿔 주세요.');
   }
@@ -657,6 +658,16 @@
 
   /* 감성 판정 문구 — 단어 수가 아니라 부정어·완곡·강조를 반영한 결과 */
   function feelingText(f) {
+    const enUI = (typeof window !== 'undefined' && window.ONETAP_LANG === 'en');
+    if (enUI) {
+      const mapEn = { positive: 'positive', negative: 'negative', mixed: 'mixed, good and weak', neutral: 'neutral' };
+      let label = mapEn[f.label] || '';
+      if (f.label === 'negative' && f.soft) label = 'soft disappointment';
+      if (f.label === 'mixed' && f.soft) label = 'mildly mixed';
+      if (f.negated && f.negated.length) label += ' · ' + f.negated.length + ' negations';
+      if (f.hedges && f.hedges.length) label += ' · hedged';
+      return label ? 'mood: ' + label : '';
+    }
     const map = { positive: '긍정', negative: '부정', mixed: '좋다·아쉬움 섞임', neutral: '중립' };
     let label = map[f.label] || '';
     if (f.label === 'negative' && f.soft) label = '완곡한 아쉬움';

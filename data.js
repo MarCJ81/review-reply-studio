@@ -754,13 +754,13 @@
     },
   ];
 
-  const EVIDENCE_ITEMS = [
+  let EVIDENCE_ITEMS = [
     '예약·주문 내역 캡처', 'POS·결제 내역', 'CCTV 영상(보관 기간 확인)',
     '상담·진료 기록', '문자·메신저 대화', '현장 사진', '직원 진술서', '리뷰 원문 캡처',
   ];
 
   /* ── 샘플(전부 가상) ──────────────────────────────────── */
-  const STORE_SAMPLE = {
+  let STORE_SAMPLE = {
     name: '오늘식당',
     industry: 'food',
     signature: '들깨칼국수',
@@ -775,7 +775,7 @@
     platform: 'naver',
   };
 
-  const SAMPLES = {
+  let SAMPLES = {
     praise: {
       rating: 5,
       text: '어제 점심에 들깨칼국수 먹었는데 진짜 고소하고 좋았어요. 사장님도 친절하시고 반찬도 계속 리필해주셔서 감사했습니다.',
@@ -802,7 +802,8 @@
     },
   };
 
-  const BULK_SAMPLE = `★★★★★ 어제 점심에 들깨칼국수 먹었는데 진짜 고소하고 좋았어요. 사장님도 친절하시고 반찬도 계속 리필해주셔서 감사했습니다.
+
+  let BULK_SAMPLE = `★★★★★ 어제 점심에 들깨칼국수 먹었는데 진짜 고소하고 좋았어요. 사장님도 친절하시고 반찬도 계속 리필해주셔서 감사했습니다.
 
 ---
 ★★★★ 칼국수 사진 올려요. 양도 많고 김치도 맛있네요. 다음에 또 올게요.
@@ -816,7 +817,7 @@
 ---
 ★★★★★ 벌써 다섯 번째 오는 단골인데요. 오늘도 들깨칼국수 먹고 왔습니다. 늘 그 맛이라 믿고 옵니다.`;
 
-  const CLAIM_SAMPLE = {
+  let CLAIM_SAMPLE = {
     platform: 'naver',
     reviewerName: '가상손님',
     reviewDate: '2026-11-18',
@@ -826,6 +827,101 @@
     facts: '리뷰에 적힌 11월 18일 12시 30분 주문 내역을 확인한 결과, 해당 시간대 결제 기록은 있었으나 같은 시간 동일 메뉴 주문은 1건이며 조리 전 과정을 CCTV로 확인했습니다. 이물질 관련 항의를 받은 기록은 없습니다.',
     evidences: ['예약·주문 내역 캡처', 'POS·결제 내역', 'CCTV 영상(보관 기간 확인)', '리뷰 원문 캡처'],
   };
+
+  /* ── English labels and samples (EN UI) ─────────────────── */
+  if (typeof window !== 'undefined' && window.ONETAP_LANG === 'en') {
+    const L = {
+      food: ['Food & café', 'Food'], clinic: ['Clinic · dental', 'Clinic'], beauty: ['Hair · nails', 'Beauty'],
+      academy: ['Academy', 'Academy'], stay: ['Stay · pension', 'Stay'], commerce: ['Delivery & store', 'Store'],
+    };
+    INDUSTRIES.forEach(function (x) { if (L[x.id]) { x.label = L[x.id][0]; x.short = L[x.id][1]; } });
+
+    const P = {
+      naver: ['Naver Place', 'Naver'], baemin: ['Baemin', 'Baemin'],
+      coupang: ['Coupang Eats', 'Coupang'], danggeun: ['Danggeun · Kakao Map', 'Danggeun'],
+    };
+    PLATFORMS.forEach(function (x) { if (P[x.id]) { x.label = P[x.id][0]; x.short = P[x.id][1]; } });
+
+    const S = {
+      praise: ['5-star praise', 'Praise'], photo: ['Photo or receipt review', 'Photo'],
+      meh: ['3–4 star, could be better', 'Mixed'], crisis: ['1–2 star complaint', 'Complaint'],
+      regular: ['Regular returning', 'Regular'], notice: ['Booking · no-show · hours', 'Notice'],
+    };
+    SITUATIONS.forEach(function (x) { if (S[x.id]) { x.label = S[x.id][0]; x.short = S[x.id][1]; } });
+
+    const R = {
+      praise: '5 stars — this is a praise reply.', photo: 'A photo or receipt review — mention the photo.',
+      meh: 'Mixed review — admit one point and fix one thing.', crisis: 'A complaint — no excuses, ask for direct contact.',
+      regular: 'A returning customer — show you remember.', notice: 'You chose to send a notice.',
+    };
+    SITUATIONS.forEach(function (x) { if (R[x.id]) x.reason = R[x.id]; });
+
+    const T = {
+      warm: ['Warm neighbourhood owner', 'Warm'], pro: ['Polished professional', 'Polished'], mz: ['Friendly modern', 'Friendly'],
+    };
+    TONES.forEach(function (x) { if (T[x.id]) { x.label = T[x.id][0]; x.short = T[x.id][1]; } });
+
+    const A = {
+      taste: 'food', fresh: 'ingredients', kind: 'service', clean: 'cleanliness', mood: 'atmosphere',
+      value: 'value', wait: 'wait', delivery: 'delivery condition', parking: 'parking', location: 'location',
+      care: 'the consultation', result: 'the result', room: 'the room', lesson: 'the lesson',
+    };
+    ASPECTS.forEach(function (x) { if (A[x.id]) x.label = A[x.id]; });
+
+
+    const V = {
+      false_fact: ['False or inaccurate content', 'Network Act art. 44-2, Criminal Act art. 307 (reference)',
+        'The review contains claims that do not match our records. {facts} This part appears to have been written differently from the actual visit record.'],
+      no_visit: ['Review with no actual visit', 'Network Act art. 44-2, platform review policy (reference)',
+        'Checking orders, bookings and visits, no record of this customer exists at the time stated in the review. {facts}'],
+      defame: ['Abuse, slander or personal attack', 'Network Act art. 70, Criminal Act art. 307 (reference)',
+        'The review contains wording that reads as abuse or slander. Unsupported statements are affecting our business, so we request that it be taken down.'],
+      privacy: ['Personal data exposed', 'Personal Information Protection Act, Network Act art. 44-2 (reference)',
+        'The review contains what appears to be personal data of staff or another customer. It was published without consent, so we request deletion.'],
+      spam: ['Advertising or coordinated reviews', 'Network Act art. 44-2, platform review policy (reference)',
+        'The review appears to be advertising or part of a coordinated set rather than a genuine visit. {facts}'],
+      medical: ['False medical or treatment claims', 'Medical Service Act art. 57, Network Act art. 44-2 (reference)',
+        'The review describes a treatment or outcome that differs from our clinical record. {facts}'],
+      threat: ['Threat or demand for money', 'Criminal Act art. 350, Network Act art. 44-2 (reference)',
+        'The review includes a threat or a demand for money in exchange for removing it. {facts}'],
+    };
+    VIOLATION_TYPES.forEach(function (x) { if (V[x.id]) { x.label = V[x.id][0]; x.law = V[x.id][1]; x.paragraph = V[x.id][2]; } });
+
+    const E = {
+      '예약·주문 내역 캡처': 'Booking or order history screenshot', 'POS·결제 내역': 'POS or payment records',
+      'CCTV 영상(보관 기간 확인)': 'CCTV footage (check retention period)', '상담·진료 기록': 'Consultation or treatment record',
+      '문자·메신저 대화': 'Text or messenger conversation', '현장 사진': 'On-site photo',
+      '직원 진술서': 'Staff statement', '리뷰 원문 캡처': 'Screenshot of the review',
+    };
+    EVIDENCE_ITEMS = EVIDENCE_ITEMS.map(function (x) { return E[x] || x; });
+
+    STORE_SAMPLE = {
+      name: 'Oneul Kitchen', industry: 'food', signature: 'sesame noodle soup', parking: 'shopfront',
+      parkingNote: '', benefitOn: true, benefit: 'free rice with any noodle', phone: '010-0000-0000',
+      hours: '11:00–21:00 (break 15:00–17:00)', story: 'The broth is made fresh every morning.',
+      tone: 'warm', platform: 'naver',
+    };
+
+    CLAIM_SAMPLE = {
+      platform: 'naver', reviewerName: 'Sample Guest', reviewDate: '2026-11-18',
+      reviewUrl: 'https://map.naver.com/example/review/0000',
+      reviewText: 'Never again. There was something in the soup and the staff did not even apologise properly.',
+      violations: ['false_fact', 'defame'],
+      facts: 'We checked the order history for 18 November at 12:30. There was one payment in that slot and one order of the same dish; the full prep was checked on CCTV. No complaint about a foreign object was recorded.',
+      evidences: ['Booking or order history screenshot', 'POS or payment records', 'CCTV footage (check retention period)', 'Screenshot of the review'],
+    };
+
+    SAMPLES = {
+      praise: { rating: 5, text: 'Had the sesame noodle soup at lunch yesterday and it was genuinely good. The owner was kind and kept refilling the side dishes, thank you.' },
+      photo: { rating: 5, text: 'Adding a photo of the noodles. Generous portion and the kimchi was great. I will be back.' },
+      meh: { rating: 3, text: 'The food was fine but at lunch there were so many people that I waited over 30 minutes. The seats were cramped so it was a bit uncomfortable.' },
+      crisis: { rating: 1, text: 'Never again. There was something in the soup and the staff did not even apologise properly. I do not know why I paid for this.' },
+      regular: { rating: 5, text: 'This is my fifth visit. Had the sesame noodle soup again today. It is always the same, which is why I keep coming.' },
+      notice: { rating: 0, text: 'Are you closed this weekend? I wanted to book but nobody answered the phone.' },
+    };
+    BULK_SAMPLE = '★★★★★ Had the sesame noodle soup at lunch yesterday and it was genuinely good. The owner was kind and kept refilling the side dishes.\n\n---\n★★★★ Adding a photo of the noodles. Generous portion and the kimchi was great.\n\n---\n★★★ The food was fine but I waited over 30 minutes at lunch and the seats were cramped.\n\n---\n★ There was something in the soup and nobody apologised.\n\n---\n★★★★★ Fifth visit. Always the same, which is why I keep coming.';
+  }
+
 
   return {
     VERSION,
